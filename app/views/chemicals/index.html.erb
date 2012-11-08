@@ -4,7 +4,7 @@
   <tr>
     <th>Name</th>
     <th>Amount</th>
-    <th>Cas</th>
+    <th>CAS</th>
     <th></th>
     <th></th>
     <th></th>
@@ -14,10 +14,14 @@
   <tr>
     <td><%= chemical.name %></td>
     <td><%= chemical.amount %></td>
-    <td><%= chemical.cas %></td>
+    <td>
+      <% if chemical.cas.to_s != '' %>
+	  	<%= link_to chemical.cas, chemical %>
+		  <% end %>
+    </td>
     <td><%= link_to 'Show', chemical %></td>
     <td><%= link_to 'Edit', edit_chemical_path(chemical) %></td>
-    <td><%= link_to 'Destroy', chemical, :method => :delete, :data => { :confirm => 'Are you sure?' } %></td>
+    <td><%= link_to 'Remove', chemical, :method => :delete, :data => { :confirm => 'Are you sure?' } %></td>
   </tr>
 <% end %>
 </table>

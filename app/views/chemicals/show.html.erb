@@ -11,10 +11,37 @@
 </p>
 
 <p>
-  <b>Cas:</b>
+  <b>CAS:</b>
   <%= @chemical.cas %>
 </p>
 
+<h2>Uses:</h2>
+<% @chemical.uses.each do |use| %>
+  <p>
+    <b>Chemist:</b>
+    <%= use.chemist %>
+  </p>
+ 
+  <p>
+    <b>Amount:</b>
+    <%= use.amount %>
+  </p>
+<% end %>
+
+<h2>Use chemical:</h2>
+<%= form_for([@chemical, @chemical.uses.build]) do |f| %>
+  <div class="field">
+    <%= f.label :chemist %><br />
+    <%= f.text_field :chemist %>
+  </div>
+  <div class="field">
+    <%= f.label :amount %><br />
+    <%= f.number_field :amount %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
 
 <%= link_to 'Edit', edit_chemical_path(@chemical) %> |
 <%= link_to 'Back', chemicals_path %>
