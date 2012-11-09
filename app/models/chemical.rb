@@ -24,11 +24,23 @@ class Chemical < ActiveRecord::Base
       return false
     end
     
-    # TODO: validate each group
     group1 = match[1]
     group2 = match[2]
     group3 = match[3]
     
-    return true
+    n = group1 + group2
+    sequence_length = n.length
+    sequence = n.split('').map{ |digit| digit.to_i }
+    check_digit = group3.to_i
+    total = 0
+    for i in 0...sequence_length do
+      total += sequence[i] * sequence_length
+    end
+    if (total % 10) == (check_digit / 10)
+      return true
+    else
+      return false
+    end
   end
+  
 end
