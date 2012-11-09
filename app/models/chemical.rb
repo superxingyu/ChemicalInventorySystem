@@ -16,31 +16,28 @@ class Chemical < ActiveRecord::Base
     end
   end
   
-  @@cas_pattern = /(\d{2,7})\-(\d{2})\-(\d)/
+  def cas_link
+    "http://www.commonchemistry.org/ChemicalDetail.aspx?ref=" + cas
+  end
   
   def self.validate_cas(cas_number)
-    match = @@cas_pattern.match(cas_number)
+    match = /(\d{2,7})\-(\d{2})\-(\d)/.match(cas_number)
     if not match
       return false
     end
     
-    group1 = match[1]
-    group2 = match[2]
-    group3 = match[3]
+    seq = match[1] + match[2]
+    digits = seq.split('').map{ |ch| ch.to_i }
     
-    n = group1 + group2
-    sequence_length = n.length
-    sequence = n.split('').map{ |digit| digit.to_i }
-    check_digit = group3.to_i
-    total = 0
-    for i in 0...sequence_length do
-      total += sequence[i] * sequence_length
+    n = digits.size
+    sum = 0
+    digits.each do |d|
+      sum += d*n
+      n -= 1
     end
-    if (total % 10) == (check_digit / 10)
-      return true
-    else
-      return false
-    end
+    
+    r = match[3].to_i
+    return r == sum % 10
   end
   
 end
