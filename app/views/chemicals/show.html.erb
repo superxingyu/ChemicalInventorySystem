@@ -16,17 +16,20 @@
 </p>
 
 <h2>Uses:</h2>
+<table>
+	<tr>
+    <th>Chemist</td>
+    <th>Amount</td>
+    <th>Record Time</td>
+  </tr>
 <% @chemical.uses.each do |use| %>
-  <p>
-    <b>Chemist:</b>
-    <%= use.chemist %>
-  </p>
- 
-  <p>
-    <b>Amount:</b>
-    <%= use.amount %>
-  </p>
+  <tr>
+    <td><%= use.chemist %></td>
+    <td><%= use.amount %></td>
+    <td><%= use.created_at.to_date %></td>
+  </tr>
 <% end %>
+</table>
 
 <h2>Use chemical:</h2>
 <%= form_for([@chemical, @chemical.uses.build]) do |f| %>

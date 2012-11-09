@@ -1,4 +1,4 @@
-<h1>Listing chemicals</h1>
+<h1>Chemical Inventories</h1>
 
 <table>
   <tr>
@@ -16,7 +16,7 @@
     <td><%= chemical.amount %></td>
     <td>
       <% if chemical.cas.to_s != '' %>
-	  	<%= link_to chemical.cas, chemical %>
+	  	<%= link_to chemical.cas, chemical.cas_link %>
 		  <% end %>
     </td>
     <td><%= link_to 'Show', chemical %></td>
