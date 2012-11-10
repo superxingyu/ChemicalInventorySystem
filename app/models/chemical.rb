@@ -21,7 +21,15 @@ class Chemical < ActiveRecord::Base
   end
   
   def self.validate_cas(cas_number)
-    match = /(\d{2,7})\-(\d{2})\-(\d)/.match(cas_number)
+    if cas_number == nil
+      return true
+    end
+    cas_number = cas_number.strip
+    if cas_number.length == 0
+      return true
+    end
+    
+    match = /^(\d{2,7})\-(\d{2})\-(\d)$/.match(cas_number)
     if not match
       return false
     end
