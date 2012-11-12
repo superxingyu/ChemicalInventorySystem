@@ -1,11 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
 
 one:
-  chemist: MyString
-  amount: 1
-  chemical: 
+  chemist: Xingyu
+  amount: 50
+  chemical: one
 
 two:
-  chemist: MyString
-  amount: 1
-  chemical: 
+  chemist: Jiahua
+  amount: 1000
+  chemical: one

@@ -1,11 +1,11 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
 
 one:
-  name: MyString
-  amount: 1
-  cas: MyString
+  name: Water
+  amount: 5000
+  cas: 7732-18-5
 
 two:
-  name: MyString
-  amount: 1
-  cas: MyString
+  name: Aspirin
+  amount: 100
+  cas: 50-78-2
