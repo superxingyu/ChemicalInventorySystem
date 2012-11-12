@@ -5,14 +5,23 @@ class Chemical < ActiveRecord::Base
   validates :name,   :presence => true
   validates :amount, :presence => true,
                      :numericality => { :greater_than_or_equal_to => 0 }
-  validates :cas,    :uniqueness => true,
-                     :length => { :maximum => 10 }
-  
+  validates_uniqueness_of :cas, :allow_blank => true, :allow_nil => true
   validate :cas_must_be_valid
   
+  before_validation :pre_validation_process
+  
+  def pre_validation_process
+    if self.cas != nil
+      self.cas = self.cas.strip
+      if self.cas.length == 0
+        self.cas = nil
+      end
+    end
+  end
+  
   def cas_must_be_valid
-    if not self.class.validate_cas(cas)
-      errors.add(:cas, "is not valid")
+    if self.cas != nil and not self.class.validate_cas(self.cas)
+        errors.add(:cas, "is not valid")
     end
   end
   
@@ -21,14 +30,6 @@ class Chemical < ActiveRecord::Base
   end
   
   def self.validate_cas(cas_number)
-    if cas_number == nil
-      return true
-    end
-    cas_number = cas_number.strip
-    if cas_number.length == 0
-      return true
-    end
-    
     match = /^(\d{2,7})\-(\d{2})\-(\d)$/.match(cas_number)
     if not match
       return false
@@ -48,4 +49,8 @@ class Chemical < ActiveRecord::Base
     return r == sum % 10
   end
   
+  def to_s
+    "Chemical: #{self.name}--#{self.cas} (#{self.amount})"
+  end
+    
 end

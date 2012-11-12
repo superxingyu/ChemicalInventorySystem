@@ -1,20 +1,26 @@
 class UsesController < ApplicationController
+  
+  # POST [chemical_id]/uses
   def create
     @chemical = Chemical.find(params[:chemical_id])
     
-    use_data = params[:use]
-    use_amount = use_data[:amount].to_i
+    failed = false
+    begin
+      @use = @chemical.uses.create(params[:use])
+      if @use.errors.any?
+        failed = true
+        # just show the first error
+        notice = @use.errors.full_messages()[0]
+      else
+        notice = 'Use of chemical was successfully recorded'
+      end
+    rescue Exception => e
+      notice = 'Not enough chemical to use'
+      failed = true
+    end
     
-    if @chemical.amount < use_amount
-      redirect_to chemical_path(@chemical), :notice => "Amount is not enough."
-    else
-      @use = @chemical.uses.create(use_data)
-      
-      # update chemical amount after use
-      @chemical.amount = @chemical.amount - @use.amount
-      @chemical.save
-      
-      redirect_to chemical_path(@chemical)
+    respond_to do |format|
+      format.html { redirect_to @chemical, :notice => notice }
     end
   end
 end
