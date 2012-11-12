@@ -18,7 +18,7 @@ class ChemicalsControllerTest < ActionController::TestCase
 
   test "should create chemical" do
     assert_difference('Chemical.count') do
-      post :create, :chemical => { :amount => @chemical.amount, :cas => @chemical.cas, :name => @chemical.name }
+      post :create, :chemical => { :amount => 2000, :cas => "50-00-0", :name => "Formaldehyde" }
     end
 
     assert_redirected_to chemical_path(assigns(:chemical))
