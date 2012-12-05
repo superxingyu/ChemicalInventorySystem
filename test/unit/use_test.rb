@@ -22,16 +22,8 @@ class UseTest < ActiveSupport::TestCase
   test "should not save if amount is larger than inventory" do
     chemical = Chemical.new(:name => "Formaldehyde", :cas => "50-00-0", :amount => 500)
     chemical.save
-    #assert_raise(RuntimeError) {
-    #  use = chemical.uses.create(:chemist => "Xingyu", :amount => 600)
-    #}
-    blocked = false
-    begin
-      use = chemical.uses.create(:chemist => "Xingyu", :amount => 600)
-    rescue Exception => e
-      blocked = true
-    end
-    assert blocked
+    use = chemical.uses.create(:chemist => "Xingyu", :amount => 600)
+    assert !use.save, "Saved the use with an amount larger than inventory."
   end
   
 end
