@@ -57,8 +57,6 @@ class ChemicalsController < ApplicationController
   # PUT /chemicals/1.json
   def update
     @chemical = Chemical.find(params[:id])
-    
-    #cas_is_valid = Chemical.validate_cas(@chemical.cas)
 
     respond_to do |format|
       if @chemical.update_attributes(params[:chemical])

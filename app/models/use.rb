@@ -7,13 +7,13 @@ class Use < ActiveRecord::Base
   validates :amount,  :presence => true,
                       :numericality => { :greater_than => 0 }
   
-  after_create :validate_chemical_amount
+  before_save :validate_chemical_amount
   after_save :deduct_chemical_amount_after_use
   
   def validate_chemical_amount
     if self.chemical.amount < self.amount
-      self.errors.add(:amount, "use amount is larger than inventory")
-      raise 'not enough amount chemical for new use'
+      self.errors.add(:amount, "use amount is larger than current inventory")
+      return false
     end
   end
   
