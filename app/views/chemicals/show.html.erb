@@ -7,7 +7,7 @@
 
 <p>
   <b>Amount:</b>
-  <%= @chemical.amount %>
+  <%= @chemical.calculate_actual_amount %>
 </p>
 
 <p>
@@ -15,7 +15,7 @@
   <%= @chemical.cas %>
 </p>
 
-<h2>Uses:</h2>
+<h2>One Time Uses:</h2>
 <table>
 	<tr>
     <th>Chemist</td>
@@ -31,7 +31,25 @@
 <% end %>
 </table>
 
-<h2>Use chemical:</h2>
+<h2>Recurring Uses:</h2>
+<table>
+	<tr>
+    <th>Chemist</td>
+    <th>Amount</td>
+    <th>Periodicity</td>
+	  <th>End date</td>
+  </tr>
+<% @chemical.recurring_uses.each do |recurring_use| %>
+  <tr>
+    <td><%= recurring_use.chemist %></td>
+    <td><%= recurring_use.amount %></td>
+    <td><%= recurring_use.periodicity %></td>
+    <td><%= recurring_use.end_date %></td>
+  </tr>
+<% end %>
+</table>
+
+<h2>One Time Use:</h2>
 <%= form_for([@chemical, @chemical.uses.build]) do |f| %>
   <div class="field">
     <%= f.label :chemist %><br />
@@ -41,6 +59,29 @@
     <%= f.label :amount %><br />
     <%= f.number_field :amount %>
   </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
+
+<h2>Recurring Use:</h2>
+<%= form_for([@chemical, @chemical.recurring_uses.build]) do |f| %>
+  <div class="field">
+    <%= f.label :chemist %><br />
+    <%= f.text_field :chemist %>
+  </div>
+  <div class="field">
+    <%= f.label :amount %><br />
+    <%= f.number_field :amount %>
+  </div>
+  <div class="field">
+    <%=f.label :periodicity%><br />
+		<%=f.select :periodicity, [['Daily', 'daily'],['Weekly', 'weekly']]%>
+	</div>
+	<div class="field">
+    <%= f.label :end_date, "End date (YYYY-MM-DD)" %><br />
+    <%= f.text_field :end_date %>
+	</div>
   <div class="actions">
     <%= f.submit %>
   </div>

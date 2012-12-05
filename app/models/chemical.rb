@@ -1,6 +1,7 @@
 class Chemical < ActiveRecord::Base
   attr_accessible :amount, :cas, :name
-  has_many :uses 
+  has_many :uses
+  has_many :recurring_uses 
   
   validates :name,   :presence => true
   validates :amount, :presence => true,
@@ -21,7 +22,7 @@ class Chemical < ActiveRecord::Base
   
   def cas_must_be_valid
     if self.cas != nil and not self.class.validate_cas(self.cas)
-        errors.add(:cas, "is not valid")
+      errors.add(:cas, "is not valid")
     end
   end
   
@@ -51,6 +52,24 @@ class Chemical < ActiveRecord::Base
   
   def to_s
     "Chemical: #{self.name}--#{self.cas} (#{self.amount})"
+  end
+  
+  def calculate_actual_amount
+    # To get actual inventory amount, consider recuring usages on top of the
+    # number stored in database.
+    # For each scheduled recurring use on this chemical,
+    # calculate the amount that was supposed to have been consumed between
+    # first effective date and present date.
+    total_deduct = 0
+    self.recurring_uses.each do |ru|
+      total_deduct += ru.cumulated_consumption
+    end
+    actual_amount = self.amount - total_deduct
+    return actual_amount
+  end
+
+  def forecast_run_out_date
+    
   end
     
 end

@@ -1,6 +1,6 @@
 ChemicalInventorySystem::Application.routes.draw do
   resources :chemicals do
-    resources :uses
+    resources :uses, :recurring_uses
   end
 
   get "home/index"

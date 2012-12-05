@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20121108190836) do
+ActiveRecord::Schema.define(:version => 20121204012944) do
 
   create_table "chemicals", :force => true do |t|
     t.string   "name"
@@ -19,6 +19,19 @@ ActiveRecord::Schema.define(:version => 20121108190836) do
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
   end
+
+  create_table "recurring_uses", :force => true do |t|
+    t.integer  "amount"
+    t.string   "chemist"
+    t.string   "periodicity"
+    t.date     "first_effective_date"
+    t.date     "end_date"
+    t.integer  "chemical_id"
+    t.datetime "created_at",           :null => false
+    t.datetime "updated_at",           :null => false
+  end
+
+  add_index "recurring_uses", ["chemical_id"], :name => "index_recurring_uses_on_chemical_id"
 
   create_table "uses", :force => true do |t|
     t.string   "chemist"
