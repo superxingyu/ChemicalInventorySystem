@@ -1,17 +1,17 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
 
 one:
-  amount: 1
-  chemist: MyString
-  periodicity: MyString
+  amount: 5
+  chemist: Xingyu
+  periodicity: daily
   first_effective_date: 2012-12-03
-  end_date: 2012-12-03
-  chemical: 
+  end_date: 2012-12-07
+  chemical: one
 
 two:
-  amount: 1
-  chemist: MyString
-  periodicity: MyString
+  amount: 5
+  chemist: David
+  periodicity: weekly
   first_effective_date: 2012-12-03
-  end_date: 2012-12-03
-  chemical: 
+  end_date: 2012-12-14
+  chemical: two

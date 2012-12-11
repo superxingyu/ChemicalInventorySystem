@@ -1,5 +1,6 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
 
+
 one:
   name: Water
   amount: 5000
@@ -9,3 +10,8 @@ two:
   name: Aspirin
   amount: 100
   cas: 50-78-2
+  
+three:
+  name: Caffeine
+  amount: 20000
+  cas: 58-08-2
