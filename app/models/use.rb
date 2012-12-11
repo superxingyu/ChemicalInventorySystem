@@ -11,7 +11,7 @@ class Use < ActiveRecord::Base
   after_save :deduct_chemical_amount_after_use
   
   def validate_chemical_amount_before_use
-    if self.chemical.calculate_actual_amount < self.amount
+    if self.chemical.calculate_actual_amount(Time.now.to_date) < self.amount
       self.errors.add(:amount, "use amount is larger than current inventory")
       return false
     end

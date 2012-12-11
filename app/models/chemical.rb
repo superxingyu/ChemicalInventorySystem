@@ -54,15 +54,21 @@ class Chemical < ActiveRecord::Base
     "Chemical: #{self.name}--#{self.cas} (#{self.amount})"
   end
   
-  def calculate_actual_amount(allow_negative=false)
+  # @param calculate_date: date object 
+  def calculate_actual_amount(calculate_date = nil, allow_negative = false)
     # To get actual inventory amount, consider recuring usages on top of the
     # number stored in database.
     # For each scheduled recurring use on this chemical,
     # calculate the amount that was supposed to have been consumed between
-    # first effective date and present date.
+    # first effective date and the calculate date.
+    
+    if calculate_date.nil?
+      calculate_date = Time.now.to_date
+    end
+    
     total_deduct = 0
     self.recurring_uses.each do |ru|
-      total_deduct += ru.cumulated_consumption
+      total_deduct += ru.cumulated_consumption(calculate_date)
     end
     actual_amount = self.amount - total_deduct
     return (allow_negative || actual_amount > 0) ? actual_amount : 0
@@ -103,7 +109,7 @@ class Chemical < ActiveRecord::Base
     end
     
     # this remaining amount includes today's consumptions
-    current_amount = self.calculate_actual_amount(true)
+    current_amount = self.calculate_actual_amount(Time.now.to_date, true)
     if current_amount < 0
       return -2 # hit shortage already (before today)
     end
