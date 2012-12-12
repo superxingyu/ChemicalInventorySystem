@@ -73,11 +73,7 @@ class Chemical < ActiveRecord::Base
     return (allow_negative || actual_amount > 0) ? actual_amount : 0
   end
   
-  def days_til_ran_out(calculate_date=nil)
-    if calculate_date.nil?
-      calculate_date = Time.now.to_date
-    end
-    
+  def days_til_ran_out(calculate_date)
     remaining = self.calculate_actual_amount(calculate_date, true)
     if remaining < 0
       return -1 # ran out already
@@ -152,7 +148,11 @@ class Chemical < ActiveRecord::Base
     end
   end
 
-  def ran_out_date_s(calculate_date)
+  def ran_out_date_s(calculate_date=nil)
+    if calculate_date.nil?
+      calculate_date = Time.now.to_date
+    end
+    
     days = self.days_til_ran_out(calculate_date)
     if days >= 0
       return (calculate_date + days).to_s
