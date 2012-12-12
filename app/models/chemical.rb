@@ -73,8 +73,12 @@ class Chemical < ActiveRecord::Base
     return (allow_negative || actual_amount > 0) ? actual_amount : 0
   end
 
-  def calculate_ran_out_date
-    date = Time.now.to_date
+  def calculate_ran_out_date(calculate_date = nil)
+    if calculate_date.nil?
+      calculate_date = Time.now.to_date
+    end
+    
+    date = calculate_date
     current_amount = self.calculate_actual_amount(date, true)
     if current_amount < 0
       return "n/a" # hit shortage before today
