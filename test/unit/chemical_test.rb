@@ -77,12 +77,41 @@ class ChemicalTest < ActiveSupport::TestCase
     @chemical1 = chemicals(:one)
     @recurring_use1 = recurring_uses(:one)
     date = Date.new(2012,12,8)
-    assert_equal(@chemical1.calculate_actual_amount(date), 4975, "actual amount calculation is wrong")
+    assert_equal(@chemical1.calculate_actual_amount(date), 4975, "actual amount calculation is wrong.")
     
     @chemical2 = chemicals(:two)
     @recurring_use2 = recurring_uses(:two)
     date = Date.new(2012,12,8)
-    assert_equal(@chemical2.calculate_actual_amount(date), 95, "actual amount calculation is wrong")
+    assert_equal(@chemical2.calculate_actual_amount(date), 95, "actual amount calculation is wrong.")
+  end
+  
+  test "calculate ran out date" do
+    chemical1 = Chemical.new(:name => "Formaldehyde", :cas => "50-00-0", :amount => 500)
+    chemical1.save
+    date = Date.new(2012,12,8)
+    recurring_use1 = chemical1.recurring_uses.create(:chemist => "Xingyu", :amount => 50, :periodicity => "daily", :first_effective_date => date)
+    recurring_use1.save
+    assert_equal(chemical1.calculate_ran_out_date(date), "2012-12-17", "calculated ran out date is wrong.")
+    
+    @chemical2 = chemicals(:two)
+    @recurring_use2 = recurring_uses(:two)
+    date = Date.new(2012,10,10)
+    assert_equal(@chemical2.calculate_ran_out_date(date), "n/a", "calculated ran out date is wrong.")
+    
+    @chemical3 = chemicals(:three)
+    date1 = Date.new(2012,03,10)
+    date2 = Date.new(2013,12,10)
+    recurring_use3 = @chemical3.recurring_uses.create(:chemist => "Xingyu", :amount => 100, :periodicity => "daily", :first_effective_date => date1)
+    assert_equal(@chemical3.calculate_ran_out_date(date), "n/a", "calculated ran out date is wrong.")
+    
+    chemical4 = Chemical.new(:name => "Ethanol, 2-chloro-", :cas => "107-07-3", :amount => 1000)
+    chemical4.save
+    date1 = Date.new(2012,12,10)
+    date2 = Date.new(2012,12,15)
+    date3 = Date.new(2012,12,12)
+    recurring_use4 = chemical4.recurring_uses.create(:chemist => "Xingyu", :amount => 100, :periodicity => "daily", :first_effective_date => date1)
+    recurring_use5 = chemical4.recurring_uses.create(:chemist => "Xingyu", :amount => 100, :periodicity => "weekly", :first_effective_date => date2)
+    assert_equal(chemical4.calculate_ran_out_date(date3), "2012-12-18", "calculated ran out date is wrong.")   
   end
   
 end
