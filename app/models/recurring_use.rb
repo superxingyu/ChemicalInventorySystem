@@ -6,10 +6,9 @@ class RecurringUse < ActiveRecord::Base
   validates :chemist,     :presence => true
   validates :amount,      :presence => true,
                           :numericality => { :greater_than => 0 }
-  #validates :end_date,    :allow_blank => true, :allow_nil => true
-  #validates :first_effective_date, :allow_blank => true, :allow_nil => true
+  #validates :end_date, :allow_blank => true, :allow_nil => true
                           #:format => {:with => /^[0-9]{4}[-][0-9]{2}[-][0-9]{2}$/}
-  validates :periodicity, :presence => true
+  validates_inclusion_of :periodicity, :in => ["daily", "weekly"]
   
   before_validation :pre_validation_process
   before_save :validate_chemical_amount
@@ -22,19 +21,18 @@ class RecurringUse < ActiveRecord::Base
   end
   
   def validate_chemical_amount
-    if self.chemical.amount < self.amount
+    if self.chemical.calculate_actual_amount(Time.now.to_date) < self.amount
       self.errors.add(:amount, "Current inventory is not enough")
       return false
     end  
   end
   
-  def validate_first_effective_date_and_end_date
-    # not exposed to user yet, skip validation for now
-    #if self.first_effective_date < Time.now.to_date
-    #  self.errors.add(:first_effective_date, "First effective date should not before current date ")
-    #  return false
-    #end
-    
+  # not exposed to user yet, skip validation for now
+  #if self.first_effective_date < Time.now.to_date
+  #  self.errors.add(:first_effective_date, "First effective date should not before current date ")
+  #  return false
+  #end
+  def validate_first_effective_date_and_end_date    
     if !self.end_date.nil? and self.end_date < self.first_effective_date
       self.errors.add(:end_date, "End date should not before first effective date")
       return false
@@ -62,7 +60,8 @@ class RecurringUse < ActiveRecord::Base
     end
     return times * self.amount
   end
-  
+
+=begin  
   # Calculate the amount that supposed to be consumed within a week 
   def weekly_consumption
     if self.periodicity == "daily"
@@ -71,14 +70,25 @@ class RecurringUse < ActiveRecord::Base
       return self.amount
     end
   end
-   
-  def days_till_next_consumption
-    if self.periodicity == "daily"
-      return 1
-    elsif self.periodicity == "weekly"
-      passed_days = (Time.now.to_date - self.first_effective_date) % 7
-      return (7 - passed_days)
+  
+  # Calculate days till next consumption from the calculate date
+  # @param calculate_date: date object 
+  def days_till_next_consumption(calculate_date = nil)
+    if calculate_date.nil?
+      calculate_date = Time.now.to_date
+    end
+    
+    if self.end_date.nil? || calculate_date <= self.end_date
+      if self.periodicity == "daily"
+        return 1
+      elsif self.periodicity == "weekly"
+        passed_days = (calculate_date - self.first_effective_date) % 7
+        return (7 - passed_days)
+      end
+    else
+      return -1
     end   
   end
+=end
        
 end

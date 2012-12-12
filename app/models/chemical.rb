@@ -54,14 +54,13 @@ class Chemical < ActiveRecord::Base
     "Chemical: #{self.name}--#{self.cas} (#{self.amount})"
   end
   
-  # @param calculate_date: date object 
-  def calculate_actual_amount(calculate_date = nil, allow_negative = false)
-    # To get actual inventory amount, consider recuring usages on top of the
-    # number stored in database.
-    # For each scheduled recurring use on this chemical,
-    # calculate the amount that was supposed to have been consumed between
-    # first effective date and the calculate date.
-    
+  # To get actual inventory amount, consider recuring usages on top of the
+  # number stored in database.
+  # For each scheduled recurring use on this chemical,
+  # calculate the amount that was supposed to have been consumed between
+  # first effective date and the calculate date. 
+  # @param calculate_date: date object
+  def calculate_actual_amount(calculate_date = nil, allow_negative = false)   
     if calculate_date.nil?
       calculate_date = Time.now.to_date
     end
@@ -73,7 +72,42 @@ class Chemical < ActiveRecord::Base
     actual_amount = self.amount - total_deduct
     return (allow_negative || actual_amount > 0) ? actual_amount : 0
   end
-  
+
+  def calculate_ran_out_date
+    date = Time.now.to_date
+    current_amount = self.calculate_actual_amount(date, true)
+    if current_amount < 0
+      return "n/a" # hit shortage before today
+    elsif current_amount == 0
+      return date.to_s # ran out date is today
+    elsif !self.recurring_uses.any?
+      return "n/a" # no recurring uses, can't forecast
+    end
+    only_weekly_consumption = false
+    while current_amount >= 0 do
+      next_day_date = date + 1
+      next_week_date = date + 7  
+      next_day_amount = self.calculate_actual_amount(next_day_date, true)
+      next_week_amount = self.calculate_actual_amount(next_week_date, true)      
+      if next_day_amount == current_amount and next_week_amount < current_amount
+        current_amount = next_week_amount
+        date = next_week_date
+        only_weekly_consumption = true
+      elsif next_day_amount < current_amount
+        current_amount = next_day_amount
+        date = next_day_date
+      else
+        return "n/a" # never gonna hit ran out
+      end
+    end
+    if only_weekly_consumption == true
+      return (date-7).to_s
+    else
+      return (date-1).to_s
+    end
+  end
+    
+=begin
   def ran_out_date_s
     days = self.days_till_ran_out
     if days >= 0
@@ -130,10 +164,10 @@ class Chemical < ActiveRecord::Base
     
     return 7 * weeks + days
   end
-  
+
+  # for the following week (starting tomorrow)
+  # calculate daily consumption schedule  
   def daily_consumptions_for_following_week
-    # for the following week (starting tomorrow)
-    # calculate daily consumption schedule
     schedule = Array.new(7, 0)
     self.recurring_uses.each do |ru|
       if ru.periodicity == "daily"
@@ -143,8 +177,7 @@ class Chemical < ActiveRecord::Base
         schedule[ru.days_till_next_consumption - 1] += ru.amount
       end  
     end
-    logger.debug schedule
     return schedule
   end
-    
+=end    
 end
