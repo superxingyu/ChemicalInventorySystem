@@ -72,116 +72,104 @@ class Chemical < ActiveRecord::Base
     actual_amount = self.amount - total_deduct
     return (allow_negative || actual_amount > 0) ? actual_amount : 0
   end
-
-  def calculate_ran_out_date(calculate_date = nil)
+  
+  def days_til_ran_out(calculate_date=nil)
     if calculate_date.nil?
       calculate_date = Time.now.to_date
     end
     
-    date = calculate_date
-    current_amount = self.calculate_actual_amount(date, true)
-    if current_amount < 0
-      return "n/a" # hit shortage before today
-    elsif current_amount == 0
-      return date.to_s # ran out date is today
-    elsif !self.recurring_uses.any?
-      return "n/a" # no recurring uses, can't forecast
-    end
-    only_weekly_consumption = false
-    while current_amount >= 0 do
-      next_day_date = date + 1
-      next_week_date = date + 7  
-      next_day_amount = self.calculate_actual_amount(next_day_date, true)
-      next_week_amount = self.calculate_actual_amount(next_week_date, true)      
-      if next_day_amount == current_amount and next_week_amount < current_amount
-        current_amount = next_week_amount
-        date = next_week_date
-        only_weekly_consumption = true
-      elsif next_day_amount < current_amount
-        current_amount = next_day_amount
-        date = next_day_date
+    remaining = self.calculate_actual_amount(calculate_date, true)
+    if remaining < 0
+      return -1 # ran out already
+    elsif remaining == 0
+      if self.recurring_usage_on(calculate_date) > 0
+        return 0 # ran out on this day
       else
-        return "n/a" # never gonna hit ran out
+        return -1 # ran out before this day
       end
     end
-    if only_weekly_consumption == true
-      return (date-7).to_s
+    
+    if !self.recurring_uses.any?
+      return -2 # never gonna hit shortage
+    end
+    
+    # get scheduled recurring uses
+    i = 0
+    to_check = {}
+    self.recurring_uses.each do |ru|
+      to_check[i] = ru
+      i += 1
+    end
+
+    last_valid_consumption = nil # most recent date with a valid consumption 
+    date = calculate_date # date for iteration
+    to_remove = nil
+    
+    # do calculations day by day until we hit shortage or we have no more
+    # active recurring use
+    while remaining > 0 && to_check.any?
+      date += 1
+      
+      # check schedules regarding the next day's deduction
+      deduction = 0
+      to_check.each do |i, ru|
+        if date < ru.first_effective_date
+          # not activated yet, skip
+        elsif !ru.end_date.nil? && date > ru.end_date
+          # inactive, need to remove this
+          if to_remove.nil?
+            to_remove = []
+          end
+          to_remove << i
+        else
+          # active recurring use, add deduction for this day
+          deduction += ru.consumption_on(date)
+        end
+      end
+      
+      if deduction > 0
+        remaining -= deduction
+        if remaining >= 0
+          last_valid_consumption = date
+        end
+      end
+      
+      # remove inactive recurring use
+      if !to_remove.nil?
+        to_remove.each do |i|
+          to_check.delete(i)
+        end
+        to_remove = nil
+      end
+    end
+    
+    if remaining > 0
+      return -2 # never gonna ran out
+    elsif last_valid_consumption.nil?
+      return -1 # no valid consumption after given calculate date
     else
-      return (date-1).to_s
+      return (last_valid_consumption - calculate_date).to_i
     end
   end
-    
-=begin
-  def ran_out_date_s
-    days = self.days_till_ran_out
+
+  def ran_out_date_s(calculate_date)
+    days = self.days_til_ran_out(calculate_date)
     if days >= 0
-      return (Time.now.to_date + days).to_s
+      return (calculate_date + days).to_s
+    elsif days == -2
+      return "not exists"
+    elsif days == -1
+      return "already in shortage"
     else
       return "n/a"
     end
   end
   
-  def days_till_ran_out
-    dts = self.days_till_shortage
-    case dts
-    when 0 # hit shortage today
-      return -2 # already ran out
-    when -2 # hit shortage before today
-      return -2 # already ran out
-    when -1 # never will hit shortage
-      return -1 # never gonna hit ran out
-    else
-      return dts - 1
-    end
-  end
-
-  def days_till_shortage
-    # calculate weekly consumption
-    total_weekly_consumption = 0
+  def recurring_usage_on(date)
+    consumption = 0
     self.recurring_uses.each do |ru|
-      total_weekly_consumption += ru.weekly_consumption
+      consumption += ru.consumption_on(date)
     end
-    
-    if total_weekly_consumption == 0
-      return -1 # never gonna hit shortage
-    end
-    
-    # this remaining amount includes today's consumptions
-    current_amount = self.calculate_actual_amount(Time.now.to_date, true)
-    if current_amount < 0
-      return -2 # hit shortage already (before today)
-    end
-    
-    # number of weeks that we're good to cover
-    weeks = current_amount / total_weekly_consumption
-
-    # find the ran out day
-    remaining = current_amount
-    days = 1
-    self.daily_consumptions_for_following_week.each do |daily_consumption|
-      remaining -= daily_consumption
-      if remaining < 0:
-        break
-      end
-      days += 1
-    end
-    
-    return 7 * weeks + days
+    return consumption
   end
-
-  # for the following week (starting tomorrow)
-  # calculate daily consumption schedule  
-  def daily_consumptions_for_following_week
-    schedule = Array.new(7, 0)
-    self.recurring_uses.each do |ru|
-      if ru.periodicity == "daily"
-        schedule.map! {|daily_consumption| daily_consumption += ru.amount}
-      end
-      if ru.periodicity == "weekly"
-        schedule[ru.days_till_next_consumption - 1] += ru.amount
-      end  
-    end
-    return schedule
-  end
-=end    
 end

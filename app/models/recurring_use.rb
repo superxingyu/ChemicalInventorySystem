@@ -27,12 +27,13 @@ class RecurringUse < ActiveRecord::Base
     end  
   end
   
-  # not exposed to user yet, skip validation for now
-  #if self.first_effective_date < Time.now.to_date
-  #  self.errors.add(:first_effective_date, "First effective date should not before current date ")
-  #  return false
-  #end
-  def validate_first_effective_date_and_end_date    
+  def validate_first_effective_date_and_end_date
+    # not exposed to user yet, skip validation for now
+    #if self.first_effective_date < Time.now.to_date
+    #  self.errors.add(:first_effective_date, "First effective date should not before current date ")
+    #  return false
+    #end
+    
     if !self.end_date.nil? and self.end_date < self.first_effective_date
       self.errors.add(:end_date, "End date should not before first effective date")
       return false
@@ -60,35 +61,16 @@ class RecurringUse < ActiveRecord::Base
     end
     return times * self.amount
   end
-
-=begin  
-  # Calculate the amount that supposed to be consumed within a week 
-  def weekly_consumption
-    if self.periodicity == "daily"
-      return 7 * self.amount
-    elsif self.periodicity == "weekly"
-      return self.amount
-    end
-  end
   
-  # Calculate days till next consumption from the calculate date
-  # @param calculate_date: date object 
-  def days_till_next_consumption(calculate_date = nil)
-    if calculate_date.nil?
-      calculate_date = Time.now.to_date
-    end
-    
-    if self.end_date.nil? || calculate_date <= self.end_date
-      if self.periodicity == "daily"
-        return 1
-      elsif self.periodicity == "weekly"
-        passed_days = (calculate_date - self.first_effective_date) % 7
-        return (7 - passed_days)
+  def consumption_on(date)
+    consumption = 0
+    if self.periodicity == 'daily'
+      consumption = self.amount
+    elsif self.periodicity == 'weekly'
+      if ((date - self.first_effective_date).to_i % 7) == 0
+        consumption = self.amount
       end
-    else
-      return -1
-    end   
+    end
+    return consumption
   end
-=end
-       
 end
